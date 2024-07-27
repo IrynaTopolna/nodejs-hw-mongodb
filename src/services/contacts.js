@@ -1,30 +1,43 @@
 import { Contact } from '../models/contactSchema.js';
 
-async function getAllContacts() {
-  const allContacts = await Contact.find();
-  return allContacts;
+async function getAllContacts({ page, perPage }) {
+  const limit = perPage;
+  const skip = page > 0 ? (page - 1) * perPage : 0;
+
+  const [contactsPerPage, totalItems] = await Promise.all([
+    Contact.find().skip(skip).limit(limit).exec(),
+    Contact.countDocuments(),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / perPage);
+
+  return {
+    data: contactsPerPage,
+    page,
+    perPage,
+    totalItems,
+    totalPages,
+    hasPreviousPage: page > 1,
+    hasNextPage: page < totalPages,
+  };
 }
 
 async function getContactById(id) {
-  const contact = await Contact.findById(id);
-  return contact;
+  return Contact.findById(id);
 }
 
 async function createContact(contact) {
-  const newContact = await Contact.create(contact);
-  return newContact;
+  return Contact.create(contact);
 }
 
 async function updateContact(id, contact) {
-  const updatedContact = await Contact.findByIdAndUpdate(id, contact, {
+  return Contact.findByIdAndUpdate(id, contact, {
     new: true,
   });
-  return updatedContact;
 }
 
 async function deleteContact(id) {
-  const deletedContact = await Contact.findByIdAndDelete(id);
-  return deletedContact;
+  return Contact.findByIdAndDelete(id);
 }
 
 export {
