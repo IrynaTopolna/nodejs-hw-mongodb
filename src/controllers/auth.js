@@ -1,19 +1,28 @@
-import * as UserService from '../services/users.js';
+import * as AuthService from '../services/auth.js';
 
-async function register(req, res, next) {
+async function registerController(req, res, next) {
   const user = {
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
   };
 
-  const registerUser = await UserService.registerUser(user);
+  const registeredUser = await AuthService.registerUser(user);
 
   res.send({
     status: 201,
     message: 'Successfully registered a user!',
-    data: registerUser,
+    data: registeredUser,
   });
 }
 
-export { register };
+async function loginController(req, res) {
+  const { email, password } = req.body;
+
+  const session = await AuthService.loginUser(req.body);
+  console.log({ session });
+
+  res.send('login completed successfully');
+}
+
+export { registerController, loginController };
