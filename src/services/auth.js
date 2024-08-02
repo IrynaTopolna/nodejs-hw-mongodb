@@ -38,4 +38,8 @@ async function loginUser(payload) {
   });
 }
 
-export { registerUser, loginUser };
+async function logoutUser(sessionId) {
+  await SessionsCollection.deleteOne({ _id: sessionId });
+}
+
+export { registerUser, loginUser, logoutUser };

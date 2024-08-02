@@ -38,4 +38,15 @@ async function loginController(req, res) {
   });
 }
 
-export { registerController, loginController };
+async function logoutController(req, res, next) {
+  if (typeof req.cookies.sessionId === 'string') {
+    await AuthService.logoutUser(req.cookies.sessionId);
+  }
+
+  res.clearCookie('sessionId');
+  res.clearCookie('refreshToken');
+
+  res.status(204).send();
+}
+
+export { registerController, loginController, logoutController };

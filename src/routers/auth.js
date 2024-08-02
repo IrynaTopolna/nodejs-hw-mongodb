@@ -1,6 +1,10 @@
 import express from 'express';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
-import { registerController, loginController } from '../controllers/auth.js';
+import {
+  registerController,
+  loginController,
+  logoutController,
+} from '../controllers/auth.js';
 import { registerSchema, loginSchema } from '../validation/authValidation.js';
 import { validateBody } from '../middlewares/validateBody.js';
 
@@ -20,5 +24,7 @@ router.post(
   validateBody(loginSchema),
   ctrlWrapper(loginController),
 );
+
+router.post('/auth/logout', ctrlWrapper(logoutController));
 
 export default router;
