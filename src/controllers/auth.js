@@ -17,12 +17,25 @@ async function registerController(req, res, next) {
 }
 
 async function loginController(req, res) {
-  const { email, password } = req.body;
-
   const session = await AuthService.loginUser(req.body);
-  console.log({ session });
 
-  res.send('login completed successfully');
+  res.cookie('refreshToken', session.refreshToken, {
+    httpOnly: true,
+    expires: session.refreshTokenValidUntil,
+  });
+
+  res.cookie('sessionId', session._id, {
+    httpOnly: true,
+    expires: session.refreshTokenValidUntil,
+  });
+
+  res.send({
+    status: 200,
+    message: 'Successfully refreshed a session!',
+    data: {
+      accessToken: session.accessToken,
+    },
+  });
 }
 
 export { registerController, loginController };

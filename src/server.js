@@ -6,6 +6,7 @@ import contactsRouter from './routers/contacts.js';
 import authRouter from './routers/auth.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -15,16 +16,17 @@ export function setupServer() {
   const app = express();
 
   app.use(cors());
+  app.use(cookieParser());
 
-  //   app.use(
-  //     pino(
-  //       pino({
-  //         transport: {
-  //           target: 'pino-pretty',
-  //         },
-  //       }),
-  //     ),
-  //   );
+  app.use(
+    pino(
+      pino({
+        transport: {
+          target: 'pino-pretty',
+        },
+      }),
+    ),
+  );
 
   app.use(authRouter);
   app.use(contactsRouter);
