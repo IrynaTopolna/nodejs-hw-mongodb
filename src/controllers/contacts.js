@@ -15,12 +15,15 @@ async function getContactsController(req, res, next) {
   const { sortBy, sortOrder } = parseSortParams(req.query);
   const filter = parseFilterParams(req.query);
 
+  const userId = req.user._id;
+
   const contacts = await getAllContacts({
     page,
     perPage,
     sortBy,
     sortOrder,
     filter,
+    userId,
   });
 
   res.status(200).send({
@@ -32,9 +35,11 @@ async function getContactsController(req, res, next) {
 
 async function getContactByIdController(req, res, next) {
   const { id } = req.params;
-  const contact = await getContactById(id);
+  const userId = req.user._id;
 
-  if (!contact) {
+  const contact = await getContactById(id, userId);
+
+  if (contact === null || contact.userId.toString() !== userId.toString()) {
     return next(createHttpError(404, 'Contact not found'));
   }
 
@@ -52,6 +57,7 @@ async function createContactController(req, res, next) {
     email: req.body.email,
     isFavourite: req.body.isFavourite,
     contactType: req.body.contactType,
+    userId: req.user._id,
   };
 
   const newContact = await createContact(contact);
@@ -65,6 +71,7 @@ async function createContactController(req, res, next) {
 
 async function updateContactController(req, res, next) {
   const { id } = req.params;
+  const userId = req.user._id;
 
   const contact = {
     name: req.body.name,
@@ -74,7 +81,7 @@ async function updateContactController(req, res, next) {
     contactType: req.body.contactType,
   };
 
-  const updatedContact = await updateContact(id, contact);
+  const updatedContact = await updateContact(id, userId, contact);
 
   if (!updatedContact) {
     return next(createHttpError(404, 'Contact not found'));
@@ -89,8 +96,9 @@ async function updateContactController(req, res, next) {
 
 async function deleteContactController(req, res, next) {
   const { id } = req.params;
+  const userId = req.user._id;
 
-  const deletedContact = await deleteContact(id);
+  const deletedContact = await deleteContact(id, userId);
 
   if (!deletedContact) {
     return next(createHttpError(404, 'Contact not found'));

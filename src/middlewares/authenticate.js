@@ -1,4 +1,3 @@
-import { request } from 'express';
 import createHttpError from 'http-errors';
 import { SessionsCollection } from '../models/sessionSchema.js';
 import { UsersCollection } from '../models/userSchema.js';
