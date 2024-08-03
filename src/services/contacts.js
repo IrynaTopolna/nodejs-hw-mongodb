@@ -1,6 +1,13 @@
 import { Contact } from '../models/contactSchema.js';
 
-async function getAllContacts({ page, perPage, sortBy, sortOrder, filter }) {
+async function getAllContacts({
+  page,
+  perPage,
+  sortBy,
+  sortOrder,
+  filter,
+  userId,
+}) {
   const limit = perPage;
   const skip = page > 0 ? (page - 1) * perPage : 0;
 
@@ -13,6 +20,8 @@ async function getAllContacts({ page, perPage, sortBy, sortOrder, filter }) {
   if (filter.isFavourite) {
     contactQuery.where('isFavourite').equals(filter.isFavourite);
   }
+
+  contactQuery.find({ userId: userId });
 
   const [totalContacts, contactsPerPage] = await Promise.all([
     // Contact.find().merge(contactQuery).countDocuments(),
@@ -38,22 +47,22 @@ async function getAllContacts({ page, perPage, sortBy, sortOrder, filter }) {
   };
 }
 
-async function getContactById(id) {
-  return Contact.findById(id);
+async function getContactById(contactId) {
+  return Contact.findOne({ _id: contactId });
 }
 
 async function createContact(contact) {
   return Contact.create(contact);
 }
 
-async function updateContact(id, contact) {
-  return Contact.findByIdAndUpdate(id, contact, {
+async function updateContact(contactId, userId, contact) {
+  return Contact.findOneAndUpdate({ _id: contactId, userId }, contact, {
     new: true,
   });
 }
 
-async function deleteContact(id) {
-  return Contact.findByIdAndDelete(id);
+async function deleteContact(contactId, userId) {
+  return Contact.findOneAndDelete({ _id: contactId, userId });
 }
 
 export {
