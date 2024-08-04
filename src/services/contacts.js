@@ -47,8 +47,8 @@ async function getAllContacts({
   };
 }
 
-async function getContactById(contactId) {
-  return Contact.findOne({ _id: contactId });
+async function getContactById(contactId, userId) {
+  return Contact.findOne({ _id: contactId, userId });
 }
 
 async function createContact(contact) {

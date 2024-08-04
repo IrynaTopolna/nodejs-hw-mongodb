@@ -39,7 +39,7 @@ async function getContactByIdController(req, res, next) {
 
   const contact = await getContactById(id, userId);
 
-  if (contact === null || contact.userId.toString() !== userId.toString()) {
+  if (contact === null) {
     return next(createHttpError(404, 'Contact not found'));
   }
 
