@@ -13,7 +13,6 @@ import {
   REFRESH_TOKEN_TTL,
   SMTP,
   TEMPLATE_DIR,
-  // APP_DOMAIN,
 } from '../constants/index.js';
 
 async function registerUser(payload) {
@@ -111,30 +110,50 @@ async function sendResetEmail(email) {
 
   const template = handlebars.compile(templateSourse);
   const link = `${process.env.APP_DOMAIN}/reset-password?token=${resetToken}`;
-  console.log(link);
 
   const html = template({
     name: user.name,
     link,
   });
-  console.log(html);
 
-  await sendMail({
-    from: SMTP.SMTP_FROM,
-    to: email,
-    subject: 'Reset your password',
-    html,
-  });
+  try {
+    await sendMail({
+      from: SMTP.SMTP_FROM,
+      to: email,
+      subject: 'Reset your password',
+      html,
+    });
+  } catch (err) {
+    throw createHttpError(
+      500,
+      'Failed to send the email, please try again later.',
+    );
+  }
 }
 
-async function resetPassword(email, token) {
+async function resetPassword(password, token, sessionId) {
+  let entries;
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
+    entries = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
     if (err instanceof Error)
       throw createHttpError(401, 'Token is expired or invalid.');
     throw err;
   }
+
+  const user = await UsersCollection.findOne({
+    email: entries.email,
+    _id: entries.sub,
+  });
+  if (user === null) throw createHttpError(404, 'User not found');
+
+  const encryptedPassword = await bcrypt.hash(password, 10);
+
+  await UsersCollection.findByIdAndUpdate(user._id, {
+    password: encryptedPassword,
+  });
+
+  await SessionsCollection.deleteOne({ _id: sessionId });
 }
 
 export {

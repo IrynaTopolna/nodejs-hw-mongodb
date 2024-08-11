@@ -9,6 +9,8 @@ import createHttpError from 'http-errors';
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
 import { parseFilterParams } from '../utils/parseFilterParams.js';
+import { saveFileToUploadDir } from '../utils/saveFileToUploadDir.js';
+import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
 
 async function getContactsController(req, res, next) {
   const { page, perPage } = parsePaginationParams(req.query);
@@ -51,6 +53,18 @@ async function getContactByIdController(req, res, next) {
 }
 
 async function createContactController(req, res, next) {
+  const photo = req.file;
+
+  let photoUrl;
+
+  if (photo) {
+    if (process.env.ENABLE_CLOUDINARY === 'true') {
+      photoUrl = await saveFileToCloudinary(photo);
+    } else {
+      photoUrl = await saveFileToUploadDir(photo);
+    }
+  }
+
   const contact = {
     name: req.body.name,
     phoneNumber: req.body.phoneNumber,
@@ -58,6 +72,7 @@ async function createContactController(req, res, next) {
     isFavourite: req.body.isFavourite,
     contactType: req.body.contactType,
     userId: req.user._id,
+    photo: photoUrl,
   };
 
   const newContact = await createContact(contact);
@@ -72,6 +87,17 @@ async function createContactController(req, res, next) {
 async function updateContactController(req, res, next) {
   const { id } = req.params;
   const userId = req.user._id;
+  const photo = req.file;
+
+  let photoUrl;
+
+  if (photo) {
+    if (process.env.ENABLE_CLOUDINARY === 'true') {
+      photoUrl = await saveFileToCloudinary(photo);
+    } else {
+      photoUrl = await saveFileToUploadDir(photo);
+    }
+  }
 
   const contact = {
     name: req.body.name,
@@ -79,12 +105,14 @@ async function updateContactController(req, res, next) {
     email: req.body.email,
     isFavourite: req.body.isFavourite,
     contactType: req.body.contactType,
+    photo: photoUrl,
   };
 
   const updatedContact = await updateContact(id, userId, contact);
 
   if (!updatedContact) {
-    return next(createHttpError(404, 'Contact not found'));
+    next(createHttpError(404, 'Contact not found'));
+    return;
   }
 
   res.status(200).send({
