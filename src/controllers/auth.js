@@ -70,9 +70,33 @@ async function refreshController(req, res, next) {
   });
 }
 
+async function sendResetEmailController(req, res, next) {
+  await AuthService.sendResetEmail(req.body.email);
+
+  res.send({
+    status: 200,
+    message: 'Reset password email has been successfully sent.',
+    data: {},
+  });
+}
+
+async function resetPasswordController(req, res, next) {
+  const { email, token } = req.body;
+
+  await AuthService.resetPassword(email, token);
+
+  res.send({
+    status: 200,
+    message: 'Password has been successfully reset.',
+    data: {},
+  });
+}
+
 export {
   registerController,
   loginController,
   logoutController,
   refreshController,
+  sendResetEmailController,
+  resetPasswordController,
 };
