@@ -117,7 +117,6 @@ async function sendResetEmail(email) {
     name: user.name,
     link,
   });
-  console.log(html);
 
   await sendMail({
     from: SMTP.SMTP_FROM,
@@ -127,14 +126,27 @@ async function sendResetEmail(email) {
   });
 }
 
-async function resetPassword(email, token) {
+async function resetPassword(password, token) {
+  let entries;
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
+    entries = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
     if (err instanceof Error)
       throw createHttpError(401, 'Token is expired or invalid.');
     throw err;
   }
+
+  const user = await UsersCollection.findOne({
+    email: entries.email,
+    _id: entries.sub,
+  });
+  if (user === null) throw createHttpError(404, 'User not found');
+
+  const encryptedPassword = await bcrypt.hash(password, 10);
+
+  await UsersCollection.findByIdAndUpdate(user._id, {
+    password: encryptedPassword,
+  });
 }
 
 export {

@@ -81,9 +81,9 @@ async function sendResetEmailController(req, res, next) {
 }
 
 async function resetPasswordController(req, res, next) {
-  const { email, token } = req.body;
+  const { password, token } = req.body;
 
-  await AuthService.resetPassword(email, token);
+  await AuthService.resetPassword(password, token);
 
   res.send({
     status: 200,

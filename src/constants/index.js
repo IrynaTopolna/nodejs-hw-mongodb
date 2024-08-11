@@ -19,8 +19,4 @@ export const SMTP = {
   SMTP_FROM: process.env.SMTP_FROM,
 };
 
-export const APP_DOMAIN = process.env.APP_DOMAIN;
-
-export const JWT_SECRET = process.env.JWT_SECRET;
-
 export const TEMPLATE_DIR = path.resolve('src', 'templates');
