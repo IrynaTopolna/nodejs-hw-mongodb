@@ -18,15 +18,15 @@ export function setupServer() {
   app.use(cors());
   app.use(cookieParser());
 
-  app.use(
-    pino(
-      pino({
-        transport: {
-          target: 'pino-pretty',
-        },
-      }),
-    ),
-  );
+  //   app.use(
+  //     pino(
+  //       pino({
+  //         transport: {
+  //           target: 'pino-pretty',
+  //         },
+  //       }),
+  //     ),
+  //   );
 
   app.use(authRouter);
   app.use(contactsRouter);

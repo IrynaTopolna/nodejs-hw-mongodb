@@ -1,9 +1,20 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import handlebars from 'handlebars';
 import createHttpError from 'http-errors';
+import path from 'node:path';
+import * as fs from 'node:fs/promises';
 import { UsersCollection } from '../models/userSchema.js';
 import { SessionsCollection } from '../models/sessionSchema.js';
-import { ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL } from '../constants/index.js';
+import { sendMail } from '../utils/sendMail.js';
+import {
+  ACCESS_TOKEN_TTL,
+  REFRESH_TOKEN_TTL,
+  SMTP,
+  TEMPLATE_DIR,
+  // APP_DOMAIN,
+} from '../constants/index.js';
 
 async function registerUser(payload) {
   const duplicateEmail = await UsersCollection.findOne({
@@ -73,4 +84,64 @@ async function refreshUserSession(sessionId, refreshToken) {
   });
 }
 
-export { registerUser, loginUser, logoutUser, refreshUserSession };
+async function sendResetEmail(email) {
+  const user = await UsersCollection.findOne({ email });
+
+  if (user === null) {
+    throw createHttpError(404, 'User not found');
+  }
+
+  const resetToken = jwt.sign(
+    {
+      sub: user._id,
+      email: user.email,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: '5m' },
+  );
+
+  const resetPasswordTemplatePath = path.join(
+    TEMPLATE_DIR,
+    'reset-password-email.html',
+  );
+
+  const templateSourse = await fs.readFile(resetPasswordTemplatePath, {
+    encoding: 'utf-8',
+  });
+
+  const template = handlebars.compile(templateSourse);
+  const link = `${process.env.APP_DOMAIN}/reset-password?token=${resetToken}`;
+  console.log(link);
+
+  const html = template({
+    name: user.name,
+    link,
+  });
+  console.log(html);
+
+  await sendMail({
+    from: SMTP.SMTP_FROM,
+    to: email,
+    subject: 'Reset your password',
+    html,
+  });
+}
+
+async function resetPassword(email, token) {
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    if (err instanceof Error)
+      throw createHttpError(401, 'Token is expired or invalid.');
+    throw err;
+  }
+}
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshUserSession,
+  sendResetEmail,
+  resetPassword,
+};
