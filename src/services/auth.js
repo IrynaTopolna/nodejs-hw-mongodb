@@ -13,7 +13,6 @@ import {
   REFRESH_TOKEN_TTL,
   SMTP,
   TEMPLATE_DIR,
-  // APP_DOMAIN,
 } from '../constants/index.js';
 
 async function registerUser(payload) {
@@ -111,22 +110,28 @@ async function sendResetEmail(email) {
 
   const template = handlebars.compile(templateSourse);
   const link = `${process.env.APP_DOMAIN}/reset-password?token=${resetToken}`;
-  console.log(link);
 
   const html = template({
     name: user.name,
     link,
   });
 
-  await sendMail({
-    from: SMTP.SMTP_FROM,
-    to: email,
-    subject: 'Reset your password',
-    html,
-  });
+  try {
+    await sendMail({
+      from: SMTP.SMTP_FROM,
+      to: email,
+      subject: 'Reset your password',
+      html,
+    });
+  } catch (err) {
+    throw createHttpError(
+      500,
+      'Failed to send the email, please try again later.',
+    );
+  }
 }
 
-async function resetPassword(password, token) {
+async function resetPassword(password, token, sessionId) {
   let entries;
   try {
     entries = jwt.verify(token, process.env.JWT_SECRET);
@@ -147,6 +152,8 @@ async function resetPassword(password, token) {
   await UsersCollection.findByIdAndUpdate(user._id, {
     password: encryptedPassword,
   });
+
+  await SessionsCollection.deleteOne({ _id: sessionId });
 }
 
 export {
