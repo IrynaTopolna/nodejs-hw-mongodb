@@ -1,19 +1,22 @@
 tags:
   - Contacts
-summary: Create contact
-operationId: createContact
-description: Create a contact
+summary: Update contact
+operationId: updateContact
+description: 'Update/add one or more fields of contact'
 security:
   - bearerAuth: []
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: string
+      example: '66a13c99ce0ac5be8ada09b0'
 requestBody:
   content:
     multipart/form-data:
       schema:
         type: object
-        required:
-          - name
-          - phoneNumber
-          - contactType
         properties:
           name:
             description: Contact's name
@@ -44,8 +47,8 @@ requestBody:
             format: binary
             default: null
 responses:
-  '201':
-    description: Contact created
+  '200':
+    description: 'Contact updated'
     content:
       application/json:
         schema:
@@ -57,12 +60,12 @@ responses:
           properties:
             status:
               type: integer
-              example: 201
+              example: 200
             message:
               type: string
-              example: Successfully created a contact!
+              example: Successfully patched a contact!
             data:
               type: object
-              $ref: ../../components/schemas/contact.yaml
-  '401':
-    $ref: '../../components/responses/401.yaml'
+              $ref: '../../../components/schemas/contact.yaml'
+  '404':
+    $ref: ../../../components/responses/404.yaml
