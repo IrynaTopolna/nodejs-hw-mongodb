@@ -13,7 +13,7 @@ tags:
     description: Auth operations.
 servers:
   - url: http://localhost:8080
-  - url: https://nodejs-hw2-mongodb-sjv0.onrender.com/api/v1
+  - url: https://nodejs-hw2-mongodb-sjv0.onrender.com
 paths:
   /contacts:
     get:
